@@ -4,7 +4,7 @@
 ParticleSystem::ParticleSystem( int width, int height )
 {
     int x=200;
-    int y=201;
+    int y=200;
     int n=0;
     m_transparent = sf::Color( 0, 0, 0, 0 );
     m_image.create( width, height,sf::Color::Transparent );
