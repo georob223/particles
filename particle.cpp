@@ -161,6 +161,21 @@ m_particles.sort();
         (*it)->vel.x += m_gravity.x * time;
         (*it)->vel.y += m_gravity.y * time;
 
+        if((*it)->vel.x>0.1f)
+        (*it)->vel.x-=0.01f* time;
+        else if((*it)->vel.x<-0.1f)
+        (*it)->vel.x+=0.01f* time;
+        else if((*it)->vel.x<0.1f&&(*it)->vel.x>-0.1f)
+        (*it)->vel.x=0.0f;
+
+        if((*it)->vel.y>0.1f)
+        (*it)->vel.y-=0.01f* time;
+        else if((*it)->vel.y<-0.1f)
+        (*it)->vel.y+=0.01f* time;
+        else if((*it)->vel.y<0.1f&&(*it)->vel.y>-0.1f)
+        (*it)->vel.y=0.0f;
+
+
         (*it)->pos.x += (*it)->vel.x * time * m_particleSpeed;
         (*it)->pos.y += (*it)->vel.y * time * m_particleSpeed;
 
@@ -273,6 +288,20 @@ void ParticleSystem::update(sf::Vector2f * local_well, float * pull, int wells)
 
         (*it)->vel.x += (m_gravity.x+local_change.x) * time;
         (*it)->vel.y += (m_gravity.y+local_change.y) * time;
+
+        if((*it)->vel.x>0.1f)
+        (*it)->vel.x-=0.01f* time;
+        else if((*it)->vel.x<-0.1f)
+        (*it)->vel.x+=0.01f* time;
+        else if((*it)->vel.x<0.1f&&(*it)->vel.x>-0.1f)
+        (*it)->vel.x=0.0f;
+
+        if((*it)->vel.y>0.1f)
+        (*it)->vel.y-=0.01f* time;
+        else if((*it)->vel.y<-0.1f)
+        (*it)->vel.y+=0.01f* time;
+        else if((*it)->vel.y<0.1f&&(*it)->vel.y>-0.1f)
+        (*it)->vel.y=0.0f;
 
         local_change.x=0.0;
         local_change.y=0.0;
