@@ -46,6 +46,8 @@
 		<Linker>
 			<Add directory="../../SFML-2.0-rc/lib" />
 		</Linker>
+		<Unit filename="grid.cpp" />
+		<Unit filename="grid.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="particle.cpp" />
 		<Unit filename="particle.h" />

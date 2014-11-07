@@ -11,7 +11,7 @@ int main()
     int height	= 1080;
     int wellnumber = 25;
     int i = 1;
-    //float frames=0.0f;
+    float frames=0.0f;
     sf::Clock clock;
     sf::Time time;
     sf::Vector2f gravpos[wellnumber];
@@ -180,15 +180,15 @@ int main()
         window.draw( particleSystem.getSprite() );
         window.draw( text );
         window.draw( keys );
-        //frames++;
-        //time=clock.getElapsedTime();
+        frames++;
+        time=clock.getElapsedTime();
         window.display();
-        /*if(time.asSeconds()>1)
+        if(time.asSeconds()>1)
         {
-        //std::cout<<frames<<std::endl;
+        std::cout<<frames<<std::endl;
         clock.restart();
         frames=0;
-        }*/
+        }
 
     }
 

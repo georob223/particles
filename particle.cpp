@@ -1,5 +1,6 @@
 #include "particle.h"
 #include <sstream>
+#include "grid.h"
 
 ParticleSystem::ParticleSystem( int width, int height )
 {
