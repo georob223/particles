@@ -1,6 +1,6 @@
 #include "particle.h"
 #include <sstream>
-#include "grid.h"
+
 
 ParticleSystem::ParticleSystem( int width, int height )
 {
@@ -31,8 +31,12 @@ ParticleSystem::~ParticleSystem()
 
 void ParticleSystem::fuel( unsigned int particles )
 {
-    int r=0,b=0,g=0, n=0;
+    int r=0,b=0,g=0;
+    static int n=0;
     Particle* particle;
+    float speedmux = 100.0f;
+
+
     if(m_particles.size()<100000)
     {
     for( unsigned int i = 0; i < particles; i++ )
@@ -40,7 +44,6 @@ void ParticleSystem::fuel( unsigned int particles )
         particle = new Particle();
         if(particle==NULL)
             return;
-
     if(n>2500)
         n=0;
 
@@ -55,24 +58,24 @@ void ParticleSystem::fuel( unsigned int particles )
             switch(rand()%4)
             {
             case 0:
-                particle->vel.x = ((float(rand()%10000)+1)/9000.0f);
-                particle->vel.y = ((float(rand()%10000)+1)/9000.0f);
+                particle->vel.x = ((float(rand()%10000)+1)/speedmux);
+                particle->vel.y = ((float(rand()%10000)+1)/speedmux);
                 break;
             case 1:
-                particle->vel.x = -((float(rand()%10000)+1)/9000.0f);
-                particle->vel.y = -((float(rand()%10000)+1)/9000.0f);
+                particle->vel.x = -((float(rand()%10000)+1)/speedmux);
+                particle->vel.y = -((float(rand()%10000)+1)/speedmux);
                 break;
             case 2:
-                particle->vel.x = ((float(rand()%10000)+1)/9000.0f);
-                particle->vel.y = -((float(rand()%10000)+1)/9000.0f);
+                particle->vel.x = ((float(rand()%10000)+1)/speedmux);
+                particle->vel.y = -((float(rand()%10000)+1)/speedmux);
                 break;
             case 3:
-                particle->vel.x = -((float(rand()%10000)+1)/9000.0f);
-                particle->vel.y = ((float(rand()%10000)+1)/9000.0f);
+                particle->vel.x = -((float(rand()%10000)+1)/speedmux);
+                particle->vel.y = ((float(rand()%10000)+1)/speedmux);
                 break;
             default:
-                particle->vel.x = -((float(rand()%10000)+1)/9000.0f);
-                particle->vel.y = ((float(rand()%10000)+1)/9000.0f);
+                particle->vel.x = -((float(rand()%10000)+1)/speedmux);
+                particle->vel.y = ((float(rand()%10000)+1)/speedmux);
 
             }
             break;
@@ -102,17 +105,29 @@ void ParticleSystem::fuel( unsigned int particles )
             particle->color.g = b+=2;//rand()%255;
             particle->color.b = g+=3;//rand()%255;
             particle->color.a = 255;
-            m_particles.push_back( particle );
+            //m_particles.push_back( particle );
+            noms.insert_cell(particle);
+            //noms.status();
         }
     }
 
     }
-    else
+   /* else
     {
         delrandparts(10);
-    }
+    }*/
 }
+/*
+pull cell
+    check for collision
+    update velocities --grav, wells, collisions
+    update xy
+    delete outliers -- exceeds screen, other updates
+    update cells -- move particles into queue for reallocation
 
+push cell onto render list
+
+*/
 void ParticleSystem::delrandparts(int number)
 {
 
@@ -152,46 +167,34 @@ void ParticleSystem::delrandparts(int number)
 
 void ParticleSystem::update()
 {
+    std::cout<<"Pre: "<<noms.size()<<std::endl;
+    noms.range_cells();
+    std::cout<<"Post: "<<noms.size()<<std::endl;
     sf::Time convert;
     convert = m_clock.getElapsedTime();
     float time = convert.asSeconds();
     m_clock.restart();
-m_particles.sort();
-    for( ParticleIterator it = m_particles.begin(); it != m_particles.end(); it++ )
+    sf::Vector2u cat;
+    cat=m_image.getSize();
+
+    for( CellIterator it = noms.begin(); it != noms.end(); it++ )
     {
-        (*it)->vel.x += m_gravity.x * time;
-        (*it)->vel.y += m_gravity.y * time;
-
-        if((*it)->vel.x>0.1f)
-        (*it)->vel.x-=0.01f* time;
-        else if((*it)->vel.x<-0.1f)
-        (*it)->vel.x+=0.01f* time;
-        else if((*it)->vel.x<0.1f&&(*it)->vel.x>-0.1f)
-        (*it)->vel.x=0.0f;
-
-        if((*it)->vel.y>0.1f)
-        (*it)->vel.y-=0.01f* time;
-        else if((*it)->vel.y<-0.1f)
-        (*it)->vel.y+=0.01f* time;
-        else if((*it)->vel.y<0.1f&&(*it)->vel.y>-0.1f)
-        (*it)->vel.y=0.0f;
-
-
-        (*it)->pos.x += (*it)->vel.x * time * m_particleSpeed;
-        (*it)->pos.y += (*it)->vel.y * time * m_particleSpeed;
-
-        if( m_dissolve ) (*it)->color.a -= m_dissolutionRate;
-
-        sf::Vector2u cat;
-        cat=m_image.getSize();
-
-        if( (*it)->pos.x > float(cat.x) || (*it)->pos.x < 0.0f || (*it)->pos.y > float(cat.y) || (*it)->pos.y < 0.0f || (*it)->color.a < 10 )
+        for( ParticleIterator its = (*it)->begin();its != (*it)->end(); its++ )
         {
-            /*if((*it)->color.a < 10)
-                m_image.setPixel( (int)(*it)->pos.x, (int)(*it)->pos.y, m_transparent );*/
-            //delete (*it);
-            it = m_particles.erase( it );
-            if( it == m_particles.end() ) return;
+
+        (*its)->vel.x += m_gravity.x * time;
+        (*its)->vel.y += m_gravity.y * time;
+
+        (*its)->pos.x += (*its)->vel.x * time; //* m_particleSpeed;
+        (*its)->pos.y += (*its)->vel.y * time; //* m_particleSpeed;
+       //if( m_dissolve ) (*it)->color.a -= m_dissolutionRate;
+
+        if( (*its)->pos.x > float(cat.x) || (*its)->pos.x < 0.0f || (*its)->pos.y > float(cat.y) || (*its)->pos.y < 0.0f || (*its)->color.a < 10 )
+        {
+            if((*its)->color.a < 10)
+                m_image.setPixel( (int)(*its)->pos.x, (int)(*its)->pos.y, m_transparent );
+            its = (*it)->erase( its );
+        }
         }
 
     }
@@ -203,8 +206,8 @@ sf::Vector2f ParticleSystem::grav_well(sf::Vector2f well, sf::Vector2f partpos, 
 {
     sf::Vector2f change, distance;
     float distant=0.0f;
-    change.x=0.0;
-    change.y=0.0;
+    change.x=0.0f;
+    change.y=0.0f;
     distance.x=(partpos.x-well.x);
     distance.y=(partpos.y-well.y);
     distance.x*=distance.x;
@@ -274,6 +277,7 @@ sf::Vector2f ParticleSystem::grav_well(sf::Vector2f well, sf::Vector2f partpos, 
 
 void ParticleSystem::update(sf::Vector2f * local_well, float * pull, int wells)
 {
+
     sf::Time convert;
     sf::Vector2f local_change;
     local_change.x=0.0;
@@ -281,6 +285,8 @@ void ParticleSystem::update(sf::Vector2f * local_well, float * pull, int wells)
     convert = m_clock.getElapsedTime();
     float time = convert.asSeconds();
     m_clock.restart();
+    sf::Vector2u cat;
+    cat=m_image.getSize();
 
     for( ParticleIterator it = m_particles.begin(); it != m_particles.end(); it++ )
     {
@@ -290,30 +296,15 @@ void ParticleSystem::update(sf::Vector2f * local_well, float * pull, int wells)
         (*it)->vel.x += (m_gravity.x+local_change.x) * time;
         (*it)->vel.y += (m_gravity.y+local_change.y) * time;
 
-        if((*it)->vel.x>0.1f)
-        (*it)->vel.x-=0.01f* time;
-        else if((*it)->vel.x<-0.1f)
-        (*it)->vel.x+=0.01f* time;
-        else if((*it)->vel.x<0.1f&&(*it)->vel.x>-0.1f)
-        (*it)->vel.x=0.0f;
-
-        if((*it)->vel.y>0.1f)
-        (*it)->vel.y-=0.01f* time;
-        else if((*it)->vel.y<-0.1f)
-        (*it)->vel.y+=0.01f* time;
-        else if((*it)->vel.y<0.1f&&(*it)->vel.y>-0.1f)
-        (*it)->vel.y=0.0f;
-
-        local_change.x=0.0;
-        local_change.y=0.0;
+        local_change.x=0.0f;
+        local_change.y=0.0f;
 
         (*it)->pos.x += (*it)->vel.x * time * m_particleSpeed;
         (*it)->pos.y += (*it)->vel.y * time * m_particleSpeed;
 
         if( m_dissolve ) (*it)->color.a -= m_dissolutionRate;
 
-        sf::Vector2u cat;
-        cat=m_image.getSize();
+
 
         if( (*it)->pos.x > float(cat.x) || (*it)->pos.x < 0.0f || (*it)->pos.y > float(cat.y) || (*it)->pos.y < 0.0f || (*it)->color.a < 10 )
         {
@@ -322,19 +313,20 @@ void ParticleSystem::update(sf::Vector2f * local_well, float * pull, int wells)
             it = m_particles.erase( it );
             if( it == m_particles.end() ) return;
         }
+
     }
 
     particle_hit_loop();
+
 }
 
 void ParticleSystem::render()
 {
-    if(m_particles.empty())
-        return;
 
     sf::Vector2u imsize=m_image.getSize();
 
-    for( ParticleIterator it = m_particles.begin(); it != m_particles.end(); it++ )
+    for(CellIterator its = noms.begin(); its!=noms.end();its++)
+    for( ParticleIterator it = (*its)->begin(); it != (*its)->end(); it++ )
     {
         if((unsigned int)(*it)->pos.x<imsize.x&&(unsigned int)(*it)->pos.y<imsize.y)
             m_image.setPixel( (int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color );
@@ -342,27 +334,27 @@ void ParticleSystem::render()
 
     m_texture.loadFromImage(m_image);
     m_sprite.setTexture(m_texture);
+
+
 }
 
 void ParticleSystem::remove()
 {
-    if(m_particles.empty())
-        return;
+    /*if(m_particles.empty())
+        return; */
 
     sf::Vector2u imsize=m_image.getSize();
 
-    for( ParticleIterator it = m_particles.begin(); it != m_particles.end(); it++ )
+    for(CellIterator its = noms.begin(); its!=noms.end();its++)
+    {
+    for( ParticleIterator it = (*its)->begin(); it != (*its)->end(); it++ )
     {
         if((unsigned int)(*it)->pos.x<imsize.x&&(unsigned int)(*it)->pos.y<imsize.y)
             m_image.setPixel( (int)(*it)->pos.x, (int)(*it)->pos.y, m_transparent );
     }
-}
+        its=noms.is_empty(its);
+    }
 
-std::string ParticleSystem::getNumberOfParticlesString()
-{
-    std::ostringstream oss;
-    oss << m_particles.size();
-    return oss.str();
 }
 
 void ParticleSystem::particle_hit_loop()
@@ -370,19 +362,21 @@ void ParticleSystem::particle_hit_loop()
     ParticleIterator Pointer1;
     ParticleIterator Pointer2;
 
-    for( ParticleIterator it = m_particles.begin(); it != m_particles.end(); it++ )
-    {
 
-        Pointer1=it;
-        for( ParticleIterator it2 = it; it2 != m_particles.end(); it2++ )
+        for( CellIterator its = noms.begin() ; its!=noms.end() ; its++)
         {
-           Pointer2=it2;
+            ParticleIterator it2 = (*its)->begin();
+            Pointer2=it2;
+        for( ; it2 != (*its)->end() ; it2++ )
+        {
+            Pointer1=it2;
+
         if(pixel_collision((*Pointer1)->pos.x,(*Pointer1)->pos.y,(*Pointer2)->pos.x,(*Pointer2)->pos.y)&&((*Pointer1)!=(*Pointer2)))
         {
-        change_position(Pointer1, Pointer2);
+            change_position(Pointer1, Pointer2);
         }
         }
-    }
+        }
 }
 
 bool ParticleSystem::pixel_collision(int x, int y, int x1, int y1)
@@ -408,7 +402,5 @@ void ParticleSystem::change_position(ParticleIterator first, ParticleIterator se
     (*second)->vel.x-=averagex;
     (*first)->vel.y-=averagey;
     (*second)->vel.y+=averagey;
-
-
 }
 

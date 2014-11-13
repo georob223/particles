@@ -166,19 +166,20 @@ int main()
             gravpos[0].y=merp.y;
         }
         if(streamparts)
-            particleSystem.fuel( 1000 );
+            particleSystem.fuel( 100 );
         particleSystem.remove();
         if(!leftdown&&!rightdown&&!middle)
             particleSystem.update();
         else
-            particleSystem.update(gravpos,pull,i);
+            //particleSystem.update(gravpos,pull,i);
+            particleSystem.update();
         particleSystem.render();
 
-        text.setString( particleSystem.getNumberOfParticlesString() );
+        //text.setString( particleSystem.getNumberOfParticlesString() );
         window.clear();
-        window.draw(Wells.getSprite());
+        //window.draw(Wells.getSprite());
         window.draw( particleSystem.getSprite() );
-        window.draw( text );
+        //window.draw( text );
         window.draw( keys );
         frames++;
         time=clock.getElapsedTime();

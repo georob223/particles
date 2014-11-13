@@ -15,16 +15,73 @@ struct Particle
 	sf::Vector2f pos; // Position
 	sf::Vector2f vel; // Velocity
 	sf::Color color;  // RGBA
-	std::list<link> neighbor_register;
-};
-
-struct link
-{
-    float length;
-    Particle * neighbor;
 };
 
 typedef std::list<Particle*>::iterator ParticleIterator;
+
+class cell
+{
+public:
+    cell();
+    cell(float x0, float y0, float x4, float y4);
+    ~cell();
+    void define_cell(float x0, float y0, float x4, float y4); //Generates a cell
+    int getWidth(){return width;}
+    int getHeight(){return height;}
+    std::list<Particle*>& pop_list();
+    void push_list( std::list<Particle*> & updated );
+    int insertParticle(Particle* dot); //stores a particle
+    bool is_empty(){if(objects.empty())return true; else return false;}
+    int capacity(); //gives back max number of storeable pixels
+    int amount(); //gives number of currently stored particles
+    void delcell(); //erases cell and particles.
+    bool range_check(float x, float y); //checks if a particle is valid.
+    ParticleIterator begin(){ return objects.begin(); }
+    ParticleIterator end(){ return objects.end(); }
+    ParticleIterator erase( ParticleIterator ut){ return objects.erase( ut ); }
+private:
+    int width, height;
+    float x_0, y_0;
+    float x_4,  y_4;
+    std::list<Particle*>objects;
+};
+typedef std::list<cell*>::iterator CellIterator;
+/* grid should store cells
+grid should sort cells
+grid should determine where particles go
+grid should maintain only occupied cells
+grid should give lists of local cells to
+check for collides
+grid should give access to individual particles
+grid should self create cells when needed
+    cases for creation:
+        first particle passed
+        cells exist
+        cell full
+        cell empty
+        cells exist, new particle is out side of ranges
+        particle is out of range
+        */
+
+class grid
+{
+public:
+    grid();
+    grid(int x, int y);
+    void make_grid(int x, int y);
+    void insert_cell( Particle * object );
+    ~grid();
+    std::string status();
+    CellIterator begin();
+    CellIterator end();
+    CellIterator is_empty(CellIterator cells);
+    void range_cells();
+    int size();
+private:
+    std::list<cell*>griddle;
+    std::list<Particle*>fire;
+    int grid_x, grid_y;
+};
 
 class ParticleSystem
 {
@@ -69,6 +126,7 @@ private:
 	unsigned char	m_shape;
 
 	std::list<Particle*> m_particles;
+	grid noms;
 };
 
 #endif
